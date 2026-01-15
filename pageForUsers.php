@@ -26,53 +26,42 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $errors[] = "Email обязателен для заполнения.";
     }
 
+    if (!empty($password)) {
+        if ($password !== $password_confirm) {
+            $errors[] = "Пароли не совпадают.";
+        }
+    }
+    
     if (empty($errors)) {
-        $sql = "UPDATE users SET user_name = :user_name, email = :email, phone = :phone WHERE id = :id";
-        $stmt = $pdo->prepare($sql);
+        $stmt = $pdo->prepare("
+            UPDATE users 
+            SET user_name = :user_name, email = :email, phone = :phone 
+            WHERE id = :id
+        ");
         $stmt->execute([
             'user_name' => $user_name,
             'email' => $email,
             'phone' => $phone,
             'id' => $_SESSION['user']['id']
         ]);
-
-        $_SESSION['user']['user_name'] = $user_name;
-        $_SESSION['user']['email'] = $email;
-        $_SESSION['user']['phone'] = $phone;
-
-        $success[] = "Данные успешно обновлены.";
-
+    
         if (!empty($password)) {
-            if ($password !== $password_confirm) {
-                $errors[] = "Пароли не совпадают.";
-            } else {
-                $hashedPassword = password_hash($password, PASSWORD_DEFAULT);
-                $sql = "UPDATE users SET password = :password WHERE id = :id";
-                $stmt = $pdo->prepare($sql);
-                $stmt->execute([
-                    'password' => $hashedPassword,
-                    'id' => $_SESSION['user']['id']
-                ]);
-
-                if ($stmt->rowCount() > 0) {
-                    $success[] = "Пароль успешно обновлен.";
-                }   else {
-                    $errors[] = "Ошибка при обновлении пароля.";
-                }
-            }
+            $hashedPassword = password_hash($password, PASSWORD_DEFAULT);
+            $stmt = $pdo->prepare("
+                UPDATE users 
+                SET password = :password 
+                WHERE id = :id
+            ");
+            $stmt->execute([
+                'password' => $hashedPassword,
+                'id' => $_SESSION['user']['id']
+            ]);
+    
+            $success[] = "Пароль успешно обновлён.";
         }
-
-        $sql = "SELECT id, user_name, email, phone FROM users WHERE id = :id";
-        $stmt = $pdo->prepare($sql);
-        $stmt->execute(['id' => $_SESSION['user']['id']]);
-        $user = $stmt->fetch(PDO::FETCH_ASSOC);
-
-        if ($user) {
-            $_SESSION['user'] = $user;
-        } else {
-            $errors[] = "Не удалось обновить данные сессии. Попробуйте снова.";
-        }
-            }
+    
+        $success[] = "Данные профиля успешно обновлены.";
+    }
 }
 ?>
 

@@ -51,7 +51,8 @@
                     "id" => $user['id'],
                     "email" => $user['email'],
                     "user_name" => $user['user_name'] ?? '',
-                    "phone" => $user['phone']
+                    "phone" => $user['phone'],
+                    
                 ];
 
                 $success[] = "Успешная авторизация.";
@@ -61,7 +62,6 @@
                 $errors[] = "Неверный логин или пароль.";
             }
         }
-        
     }
 ?>
 
